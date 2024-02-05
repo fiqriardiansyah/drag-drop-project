@@ -1,10 +1,12 @@
 import { RefactorContext } from "@/refactor/context/context";
 import { MenuTypes, cardProcessItemInfo, convertToStringFormat } from "@/refactor/utils/constant";
 import { motion } from 'framer-motion';
+import { v4 as uuidv4 } from 'uuid';
 import React from "react";
 import { useDrag, useDrop } from "react-dnd";
 import CardMaterialDraw from "../material/draw";
 import ShapeMaterial from "../material/shape";
+import CardVariableDraw from "../variable/draw";
 
 type CardProcessDrawProps = React.HTMLProps<HTMLDivElement> & {
     attach?: any;
@@ -13,18 +15,37 @@ type CardProcessDrawProps = React.HTMLProps<HTMLDivElement> & {
 }
 
 const CardProcessDraw = ({ className, attach, asChild, children, ...props }: CardProcessDrawProps) => {
-    const { entities, setEntities } = React.useContext(RefactorContext) as any;
+    const { entities, setEntities, clickEntityToFocus, clickEntityToZIndex, activeEntitiesMenu, activeEntity } = React.useContext(RefactorContext) as any;
 
-    const materials = attach?.children || []
+    const items = attach?.children || []
 
-    const dropMaterial = (data: any) => {
+    const dropNewMaterial = (data: any) => {
         setEntities((entities: any[]) => entities?.map((entity) => {
             if (entity?.idEntity !== attach?.idEntity) return entity;
             if ((entity?.children || []).find((item: any) => item.idEntity === data?.idEntity)) return entity;
             return {
                 ...entity,
-                children: [...(entity?.children || []), { ...data, idEntity: new Date().getTime() }]
+                children: [...(entity?.children || []), { ...data, idEntity: uuidv4() }]
             }
+        }));
+    }
+
+    const dropTransferMaterial = (data: any) => {
+        if (attach?.idEntity === data?.idEntityParent) return;
+        setEntities((entities: any[]) => entities?.map((entity) => {
+            if (data?.idEntityParent === entity?.idEntity) {
+                return {
+                    ...entity,
+                    children: entity?.children?.filter((child: any) => child?.idEntity !== data?.idEntity)
+                }
+            }
+            if (attach?.idEntity === entity?.idEntity) {
+                return {
+                    ...entity,
+                    children: [...(entity?.children || []), data]
+                }
+            }
+            return entity;
         }));
     }
 
@@ -41,9 +62,13 @@ const CardProcessDraw = ({ className, attach, asChild, children, ...props }: Car
 
     const [{ isOver }, drop] = useDrop(
         () => ({
-            accept: MenuTypes.material.type,
+            accept: [MenuTypes.material.type, MenuTypes.variable.type],
             drop(item: any, monitor) {
-                dropMaterial(item);
+                if (!item?.idEntity) {
+                    dropNewMaterial(item);
+                    return undefined;
+                }
+                dropTransferMaterial(item);
                 return undefined;
             },
             collect(monitor) {
@@ -65,26 +90,48 @@ const CardProcessDraw = ({ className, attach, asChild, children, ...props }: Car
         }));
     }
 
-    const sumMaterialPrice = materials?.reduce((price: number, curr: any) => curr.data.price + price, 0)
+    const onClick = (e: any) => {
+        e.stopPropagation();
+        clickEntityToFocus(attach);
+        clickEntityToZIndex(attach);
+    }
+
+    const sumItemPrice = items?.reduce((price: number, curr: any) => curr.data.price + price, 0);
+    const isActive = activeEntitiesMenu?.length && !activeEntitiesMenu.includes(attach?.idEntity);
+
+    const isPartOfActive = (() => {
+        if (!activeEntitiesMenu.length) return true;
+        return activeEntitiesMenu.includes(attach?.idEntity);
+    })()
 
     if (isDragging) return null
     return (
-        <div ref={drag} style={{ left: attach?.left, top: attach?.top }} className={`${cardProcessItemInfo.style.className}  ${isOver ? "outline outline-gray-500" : "outline outline-transparent"} ${asChild ? "border border-gray-300" : "absolute transform -translate-x-16"} min-w-[200px] hover:shadow-lg transition-shadow duration-100 w-fit items-center cursor-grab py-2 gap-4 px-3 flex flex-col ${className}`} {...props}>
+        <div id={'entity-' + attach?.idEntity} onClick={onClick} ref={drag} style={{ left: attach?.left, top: attach?.top, zIndex: attach?.zIndex }}
+            className={`${!isPartOfActive ? "!bg-gray-400 !border-gray-500" : ""} border-gray-300 ${cardProcessItemInfo.style.className} ${isActive ? "z-[50]" : ""} ${activeEntity?.idEntity === attach?.idEntity ? "outline-4 outline-white outline-offset-2" : ""} ${attach?.idEntityParent ? "" : "shadow-md"} ${isOver ? "outline outline-gray-500" : "outline outline-transparent"} ${asChild ? "" : "absolute transform"} border border-gray-300 min-w-[200px] hover:shadow-lg transition-shadow duration-100 w-fit items-center cursor-pointer py-2 gap-4 px-3 flex flex-col ${className}`} {...props}>
             {children}
-            <div ref={drop} className="flex flex-col gap-[1px] w-full">
-                {materials?.map((material: any) => (
-                    <motion.div whileHover={{ scale: 0.98 }} key={material.idEntity}>
-                        <CardMaterialDraw removeChildren={removeChildren} attach={material}>
-                            <div className="flex flex-col font-light">
-                                <span>{material?.data?.text}</span>
-                                <span className="text-gray-600 text-xs font-medium">Rp. {convertToStringFormat(material?.data?.price)}</span>
-                            </div>
-                        </CardMaterialDraw>
+            <div ref={drop} className={`flex flex-col gap-[1px] w-full ${!isPartOfActive ? "grayscale" : ""}`}>
+                {items?.map((item: any) => (
+                    <motion.div whileHover={{ scale: 0.98 }} key={item.idEntity}>
+                        {item?.type === MenuTypes.material.type ? (
+                            <CardMaterialDraw removeChildren={removeChildren} attach={{ ...item, idEntityParent: attach?.idEntity }}>
+                                <div className="flex flex-col font-light">
+                                    <span>{item?.data?.text}</span>
+                                    <span className="text-gray-600 text-xs font-medium">Rp. {convertToStringFormat(item?.data?.price)}</span>
+                                </div>
+                            </CardMaterialDraw>
+                        ) : (
+                            <CardVariableDraw removeChildren={removeChildren} attach={{ ...item, idEntityParent: attach?.idEntity }}>
+                                <div className="flex flex-col font-light">
+                                    <span>{item?.data?.text}</span>
+                                    <span className="text-gray-600 text-xs font-medium">Rp. {convertToStringFormat(item?.data?.price)}</span>
+                                </div>
+                            </CardVariableDraw>
+                        )}
                     </motion.div>
                 ))}
-                {(isOver || !materials?.length) && <ShapeMaterial backgroundColor={`${isOver && !materials.length ? "bg-white h-[50px]" : "bg-gray-300"}`} outerColor={cardProcessItemInfo.style.color} className="transition-transform duration-75 text-black text-sm h-[40px] w-full" />}
+                {(isOver || !items?.length) && <ShapeMaterial backgroundColor={`${isOver && !items.length ? "bg-white h-[50px]" : "bg-gray-300"}`} outerColor={cardProcessItemInfo.style.color} className="transition-transform duration-75 text-black text-sm h-[40px] w-full" />}
             </div>
-            {materials?.length ? <p className="self-start font-light text-sm">Total: <span className="font-semibold">Rp. {convertToStringFormat(sumMaterialPrice)}</span></p> : null}
+            {items?.length ? <p className="self-start font-light text-sm">Total: <span className="font-semibold">Rp. {convertToStringFormat(sumItemPrice)}</span></p> : null}
         </div>
     )
 }

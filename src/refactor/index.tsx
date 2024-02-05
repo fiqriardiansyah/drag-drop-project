@@ -1,12 +1,15 @@
+import { ConfigProvider } from "antd";
 import Draw from "./draw";
 import Sidebar from "./sidebar";
+import LeftSidebar from "./left-sidebar";
 
 const IndexRefactor = () => {
     return (
-        <div className="flex w-screen h-screen">
+        <ConfigProvider>
             <Sidebar />
             <Draw />
-        </div>
+            <LeftSidebar />
+        </ConfigProvider>
     )
 }
 

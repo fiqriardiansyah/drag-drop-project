@@ -7,7 +7,12 @@ import React from "react";
 const ListProcess = () => {
     const { menu, setMenu } = React.useContext(RefactorContext) as any;
 
-    const dummyProcess = ["Process 1", "Process 2"]
+    const dummyProcess = [
+        {
+            id: 1,
+            text: "Process",
+        }
+    ]
 
     if (menu !== MenuTypes.process.id) return null
     return (
@@ -15,8 +20,8 @@ const ListProcess = () => {
             {menu === MenuTypes.process.id ? (
                 <div className="flex flex-col gap-5">
                     {dummyProcess.map((item) => (
-                        <CardProcessItem key={item} attach={{ data: item }}>
-                            {item}
+                        <CardProcessItem key={item.id} attach={{ data: item }}>
+                            {item.text}
                         </CardProcessItem>
                     ))}
                 </div>

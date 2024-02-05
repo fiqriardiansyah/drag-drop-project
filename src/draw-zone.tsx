@@ -1,4 +1,5 @@
 import React from "react";
+import { v4 as uuidv4 } from 'uuid';
 import { AppContext } from "./context";
 import { useDrop } from "react-dnd";
 import MaterialList from "./material-list";
@@ -32,7 +33,7 @@ const DrawZone = () => {
                 const delta = monitor.getDifferenceFromInitialOffset();
                 const left = Math.round(item.left + delta.x)
                 const top = Math.round(item.top + delta.y)
-                moveBox(item?.id || new Date().getTime(), left, top, item?.attach)
+                moveBox(item?.id || uuidv4(), left, top, item?.attach)
                 return undefined
             },
         }),

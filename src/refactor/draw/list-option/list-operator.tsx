@@ -1,4 +1,4 @@
-import CardOperatorItem, { minusOperator, plusOperator, timesOperator } from "@/refactor/card/operator/item";
+import CardOperatorItem, { divideOperator, minusOperator, plusOperator, timesOperator } from "@/refactor/card/operator/item";
 import { RefactorContext } from "@/refactor/context/context";
 import { MenuTypes } from "@/refactor/utils/constant";
 import { AnimatePresence } from "framer-motion";
@@ -10,21 +10,27 @@ const ListOperator = () => {
     const dummyOperator = [
         {
             id: 1,
-            text: 'Tambah',
+            text: 'Addition',
             icon: plusOperator.id,
             resolver: plusOperator.resolver
         },
         {
             id: 2,
-            text: 'Kurang',
+            text: 'Substraction',
             icon: minusOperator.id,
             resolver: minusOperator.resolver
         },
         {
             id: 3,
-            text: 'Kali',
+            text: 'Multiplication',
             icon: timesOperator.id,
             resolver: timesOperator.resolver
+        },
+        {
+            id: 4,
+            text: 'Division',
+            icon: divideOperator.id,
+            resolver: divideOperator.resolver
         }
     ]
 

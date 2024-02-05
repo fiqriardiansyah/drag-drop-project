@@ -12,7 +12,7 @@ const CardProcessItem = ({ className, attach, children, ...props }: CardProcessI
     const [{ isDragging }, drag] = useDrag(
         () => ({
             type: MenuTypes.process.type,
-            item: { ...MenuTypes.process, ...attach, left: 0, top: 0 },
+            item: { ...MenuTypes.process, ...attach, left: 0, top: 0, zIndex: 1 },
             collect: (monitor) => ({
                 isDragging: monitor.isDragging(),
             }),

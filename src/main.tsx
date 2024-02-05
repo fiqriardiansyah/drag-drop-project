@@ -17,15 +17,10 @@ const root = createRoot(container);
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <IndexRefactor />,
     children: routes,
     errorElement: <div>error</div>,
   },
-  {
-    path: '/refactor',
-    element: <IndexRefactor />,
-    children: routes
-  }
 ]);
 
 root.render(

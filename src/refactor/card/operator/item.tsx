@@ -2,35 +2,46 @@ import { MenuTypes, cardOperatorItemInfo } from "@/refactor/utils/constant";
 import { useDrag } from "react-dnd";
 import { HiMinus } from "react-icons/hi";
 import { TiTimes } from "react-icons/ti";
+import { TbDivide } from "react-icons/tb";
 import { TbPlus } from "react-icons/tb";
 import React from "react";
 
 export const plusOperator = {
     id: 1,
     icon: <TbPlus />,
-    resolver: (a: any, b: any) => a + b
+    resolver: (a: any, b: any) => a + b,
+    name: 'Addition'
 }
 
 export const minusOperator = {
     id: 2,
     icon: <HiMinus />,
-    resolver: (a: any, b: any) => a - b
+    resolver: (a: any, b: any) => a - b,
+    name: 'Substraction'
 }
 
 export const timesOperator = {
     id: 3,
     icon: <TiTimes />,
-    resolver: (a: any, b: any) => a * b
+    resolver: (a: any, b: any) => a * b,
+    name: 'Multiplication'
 }
 
-export const operatorIcons = [plusOperator, minusOperator, timesOperator]
+export const divideOperator = {
+    id: 4,
+    icon: <TbDivide />,
+    resolver: (a: any, b: any) => a / b,
+    name: 'Division'
+}
+
+export const operatorIcons = [plusOperator, minusOperator, timesOperator, divideOperator]
 
 const CardOperatorItem = ({ className, children, operator, attach, ...props }: any) => {
 
     const [{ isDragging }, drag] = useDrag(
         () => ({
             type: MenuTypes.operator.type,
-            item: { ...MenuTypes.operator, ...attach, left: 0, top: 0 },
+            item: { ...MenuTypes.operator, ...attach, left: 0, top: 0, zIndex: 1 },
             collect: (monitor) => ({
                 isDragging: monitor.isDragging(),
             }),
